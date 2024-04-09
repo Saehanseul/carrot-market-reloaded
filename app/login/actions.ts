@@ -5,10 +5,26 @@ import {
   PASSWORD_REGEX,
   PASSWORD_REGEX_ERROR
 } from "@/lib/constants";
+import db from "@/lib/db";
 import { z } from "zod";
+import bycrypt from "bcrypt";
+import getSession from "@/lib/session";
+import { redirect } from "next/navigation";
+
+const checkEmailExist = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email
+    }
+  });
+  return !!user;
+};
 
 const formDataSchema = z.object({
-  email: z.string().email(),
+  email: z
+    .string()
+    .email()
+    .refine(checkEmailExist, "해당 이메일로 가입된 계정이 없습니다."),
   password: z
     .string()
     .min(PASSWORD_MIN_LENGTH, PASSWORD_MIN_LENGTH_ERROR)
@@ -21,10 +37,37 @@ export const login = async (prevState: any, formData: FormData) => {
     password: formData.get("password")
   };
 
-  const validateResult = formDataSchema.safeParse(data);
+  const validateResult = await formDataSchema.safeParseAsync(data);
   if (!validateResult.success) {
     return validateResult.error.flatten();
   } else {
-    console.log("login success", validateResult.data);
+    const user = await db.user.findUnique({
+      where: {
+        email: validateResult.data.email
+      },
+      select: {
+        id: true,
+        password: true
+      }
+    });
+
+    const isPasswordCorrect = await bycrypt.compare(
+      validateResult.data.password,
+      user!.password ?? ""
+    );
+
+    if (isPasswordCorrect) {
+      const session = await getSession();
+      session.id = user!.id;
+      await session.save();
+      redirect("/profile");
+    } else {
+      return {
+        fieldErrors: {
+          password: ["비밀번호가 일치하지 않습니다."],
+          email: []
+        }
+      };
+    }
   }
 };

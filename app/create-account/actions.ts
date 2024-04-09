@@ -12,34 +12,35 @@ import bcrypt from "bcrypt";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import getSession from "@/lib/session";
 
 const checkUsername = (username: string) => {
   return !username.includes(" ");
 };
 
-const checkUniqueUsername = async (username: string) => {
-  const user = await db.user.findUnique({
-    where: {
-      username
-    },
-    select: {
-      id: true
-    }
-  });
-  return !user;
-};
+// const checkUniqueUsername = async (username: string) => {
+//   const user = await db.user.findUnique({
+//     where: {
+//       username
+//     },
+//     select: {
+//       id: true
+//     }
+//   });
+//   return !user;
+// };
 
-const checkUniqueEmail = async (email: string) => {
-  const userEmail = await db.user.findUnique({
-    where: {
-      email: email
-    },
-    select: {
-      id: true
-    }
-  });
-  return !userEmail;
-};
+// const checkUniqueEmail = async (email: string) => {
+//   const userEmail = await db.user.findUnique({
+//     where: {
+//       email: email
+//     },
+//     select: {
+//       id: true
+//     }
+//   });
+//   return !userEmail;
+// };
 
 const checkPassword = ({
   password,
@@ -50,6 +51,7 @@ const checkPassword = ({
 }) => {
   return password === confirmPassword;
 };
+
 const formDataSchema = z
   .object({
     username: z
@@ -57,17 +59,52 @@ const formDataSchema = z
         invalid_type_error: "문자만 입력해주세요.",
         required_error: "필수 입력사항입니다."
       })
-      .refine(checkUsername, USERNAME_ERROR)
-      .refine(checkUniqueUsername, "이미 사용중인 이름입니다."),
-    email: z
-      .string()
-      .email()
-      .refine(checkUniqueEmail, "이미 사용중인 이메일입니다."),
+      .refine(checkUsername, USERNAME_ERROR),
+    email: z.string().email(),
     password: z
       .string()
       .min(PASSWORD_MIN_LENGTH)
       .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirmPassword: z.string().min(PASSWORD_MIN_LENGTH)
+  })
+  .superRefine(async ({ username }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        username
+      },
+      select: {
+        id: true
+      }
+    });
+    if (user) {
+      console.log("moonsae user", user);
+      ctx.addIssue({
+        code: "custom",
+        message: "해당 유저명으로 가입된 계정이 이미 존재합니다.",
+        path: ["username"],
+        fatal: true
+      });
+      return z.NEVER;
+    }
+  })
+  .superRefine(async ({ email }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        email
+      },
+      select: {
+        id: true
+      }
+    });
+    if (user) {
+      ctx.addIssue({
+        code: "custom",
+        message: "해당 이메일로 가입된 계정이 이미 존재합니다.",
+        path: ["email"],
+        fatal: true
+      });
+      return z.NEVER;
+    }
   })
   .refine(checkPassword, {
     message: PASSWORD_CONFIRM_ERROR,
@@ -94,13 +131,10 @@ export const createAccount = async (prevState: any, formData: FormData) => {
         password: hashedPassword
       }
     });
-    console.log("user: ", user);
-    const cookie = await getIronSession(cookies(), {
-      cookieName: "session-carrot",
-      password: process.env.COOKIE_PASSWORD!
-    });
-    cookie.id = user.id;
-    await cookie.save();
+
+    const session = await getSession();
+    session.id = user.id;
+    await session.save();
     redirect("/profile");
   }
 };
