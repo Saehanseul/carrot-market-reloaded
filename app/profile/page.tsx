@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const getUser = async () => {
   const session = await getSession();
@@ -22,6 +22,7 @@ export default async function Profile() {
     "use server";
     const session = await getSession();
     await session.destroy();
+    return redirect("/");
   };
   return (
     <div>

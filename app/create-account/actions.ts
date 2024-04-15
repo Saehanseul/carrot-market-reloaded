@@ -9,10 +9,7 @@ import {
 import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { getIronSession } from "iron-session";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import getSession from "@/lib/session";
+import loginToProfile from "@/lib/login";
 
 const checkUsername = (username: string) => {
   return !username.includes(" ");
@@ -132,9 +129,6 @@ export const createAccount = async (prevState: any, formData: FormData) => {
       }
     });
 
-    const session = await getSession();
-    session.id = user.id;
-    await session.save();
-    redirect("/profile");
+    return loginToProfile(user.id);
   }
 };

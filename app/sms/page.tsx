@@ -12,6 +12,7 @@ const initialState = {
 };
 export default function SMSLogin() {
   const [state, dispatch] = useFormState(smsLogin, initialState);
+
   return (
     <div className="flex flex-col gap-10 py-8 px-6">
       <div className="flex flex-col gap-2 *:font-medium">
@@ -27,6 +28,7 @@ export default function SMSLogin() {
             placeholder="Verification code"
             min={SMS_TOKEN_MIN}
             max={SMS_TOKEN_MAX}
+            errors={state.error?.formErrors}
           />
         ) : (
           <Input

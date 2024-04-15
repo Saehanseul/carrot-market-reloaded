@@ -10,7 +10,9 @@ const publicOnlyUrls: Routes = {
   "/": true,
   "/create-account": true,
   "/sms": true,
-  "/login": true
+  "/login": true,
+  "/github/start": true,
+  "/github/complete": true
 };
 
 export async function middleware(request: NextRequest) {
@@ -18,9 +20,7 @@ export async function middleware(request: NextRequest) {
   // console.log("cookes", request.cookies.getAll());
   // console.log(cookies());
   const session = await getSession();
-  console.log("session", session);
   const isPublicPath = publicOnlyUrls[request.nextUrl.pathname];
-  const pathname = request.nextUrl.pathname;
 
   if (!session.id) {
     if (!isPublicPath) {

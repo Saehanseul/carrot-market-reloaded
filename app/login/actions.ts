@@ -8,8 +8,7 @@ import {
 import db from "@/lib/db";
 import { z } from "zod";
 import bycrypt from "bcrypt";
-import getSession from "@/lib/session";
-import { redirect } from "next/navigation";
+import loginToProfile from "@/lib/login";
 
 const checkEmailExist = async (email: string) => {
   const user = await db.user.findUnique({
@@ -31,7 +30,7 @@ const formDataSchema = z.object({
     .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR)
 });
 
-export const login = async (prevState: any, formData: FormData) => {
+export const loginAction = async (prevState: any, formData: FormData) => {
   const data = {
     email: formData.get("email"),
     password: formData.get("password")
@@ -57,10 +56,7 @@ export const login = async (prevState: any, formData: FormData) => {
     );
 
     if (isPasswordCorrect) {
-      const session = await getSession();
-      session.id = user!.id;
-      await session.save();
-      redirect("/profile");
+      return loginToProfile(user!.id);
     } else {
       return {
         fieldErrors: {
