@@ -93,7 +93,6 @@ export const smsLogin = async (prevState: ActionState, formData: FormData) => {
         from: process.env.TWILIO_PHONE_NUMBER,
         to: result.data
       });
-      console.log("sendSMSResult", sendSMSResult);
 
       return { token: true };
     }
