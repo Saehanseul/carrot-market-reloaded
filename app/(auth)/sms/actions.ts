@@ -20,7 +20,7 @@ async function tokenExists(token: number) {
       id: true
     }
   });
-  console.log("moonsae exist", exist);
+
   return !!exist;
 }
 
@@ -86,7 +86,7 @@ export const smsLogin = async (prevState: ActionState, formData: FormData) => {
           }
         }
       });
-      console.log("result.data", result.data);
+
       const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
       const sendSMSResult = await client.messages.create({
         body: `인증번호는 ${token} 입니다.`,

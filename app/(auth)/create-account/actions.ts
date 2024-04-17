@@ -74,7 +74,6 @@ const formDataSchema = z
       }
     });
     if (user) {
-      console.log("moonsae user", user);
       ctx.addIssue({
         code: "custom",
         message: "해당 유저명으로 가입된 계정이 이미 존재합니다.",

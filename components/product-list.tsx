@@ -2,7 +2,7 @@
 
 import { Product } from "@/app/(tabs)/products/page";
 import ListProduct from "./list-product";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMoreProducts } from "@/app/(tabs)/products/actions";
 
 interface ProductListProps {
@@ -14,19 +14,42 @@ export function ProductList({ initialProducts }: ProductListProps) {
   const [page, setPage] = useState(0);
   const [isLoadMore, setIsLoadMore] = useState(false);
   const [isLastPage, setIsLastPage] = useState(false);
+  const trigger = useRef<HTMLSpanElement>(null);
 
-  const onLoadMoreClick = async () => {
-    setIsLoadMore(true);
-    const moreProducts = await getMoreProducts(page + 1);
-    if (moreProducts.length !== 0) {
-      setPage((prev) => prev + 1);
-      setProducts((prev) => [...prev, ...moreProducts]);
-    } else {
-      setIsLastPage(true);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async (
+        entries: IntersectionObserverEntry[],
+        observer: IntersectionObserver
+      ) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && trigger.current) {
+          observer.unobserve(trigger.current);
+          setIsLoadMore(true);
+          const moreProducts = await getMoreProducts(page + 1);
+          if (moreProducts.length !== 0) {
+            setPage((prev) => prev + 1);
+            setProducts((prev) => [...prev, ...moreProducts]);
+          } else {
+            setIsLastPage(true);
+          }
+
+          setIsLoadMore(false);
+        }
+      },
+      {
+        threshold: 1
+      }
+    );
+
+    if (trigger.current) {
+      observer.observe(trigger.current);
     }
 
-    setIsLoadMore(false);
-  };
+    return () => {
+      observer.disconnect();
+    };
+  }, [page]);
 
   return (
     <div className="p-5 gap-5 flex flex-col">
@@ -34,12 +57,12 @@ export function ProductList({ initialProducts }: ProductListProps) {
         <ListProduct key={index} {...product} />
       ))}
       {!isLastPage && (
-        <button
-          onClick={onLoadMoreClick}
-          className="text-white bg-orange-400 mx-auto py-2 px-3 rounded-md hover:opacity-90 active:scale-95"
+        <span
+          ref={trigger}
+          className=" text-white bg-orange-400 mx-auto py-2 px-3 rounded-md hover:opacity-90 active:scale-95"
         >
           {isLoadMore ? "로딩중" : "더 불러오기"}
-        </button>
+        </span>
       )}
     </div>
   );

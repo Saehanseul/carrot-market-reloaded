@@ -10,7 +10,6 @@ export default function Input({
   name,
   ...rest
 }: InputProps & InputHTMLAttributes<HTMLInputElement>) {
-  console.log("moonsae errors", errors);
   return (
     <div className="flex flex-col gap-2">
       <input
