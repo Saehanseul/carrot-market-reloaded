@@ -1,9 +1,9 @@
 "use client";
 
-import { Product } from "@/app/(tabs)/products/page";
+import { Product } from "@/app/(tabs)/home/page";
 import ListProduct from "./list-product";
 import { useEffect, useRef, useState } from "react";
-import { getMoreProducts } from "@/app/(tabs)/products/actions";
+import { getMoreProducts } from "@/app/(tabs)/home/actions";
 
 interface ProductListProps {
   initialProducts: Product;
@@ -56,14 +56,14 @@ export function ProductList({ initialProducts }: ProductListProps) {
       {products.map((product, index) => (
         <ListProduct key={index} {...product} />
       ))}
-      {!isLastPage && (
+      {/* {!isLastPage && (
         <span
           ref={trigger}
           className=" text-white bg-orange-400 mx-auto py-2 px-3 rounded-md hover:opacity-90 active:scale-95"
         >
           {isLoadMore ? "로딩중" : "더 불러오기"}
         </span>
-      )}
+      )} */}
     </div>
   );
 }

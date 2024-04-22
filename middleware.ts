@@ -16,7 +16,6 @@ const publicOnlyUrls: Routes = {
 };
 
 export async function middleware(request: NextRequest) {
-  console.log("middleware");
   // console.log("cookes", request.cookies.getAll());
   // console.log(cookies());
   const session = await getSession();
@@ -28,7 +27,7 @@ export async function middleware(request: NextRequest) {
     }
   } else {
     if (isPublicPath) {
-      return NextResponse.redirect(new URL("/profile", request.url));
+      return NextResponse.redirect(new URL("/home", request.url));
     }
   }
 }

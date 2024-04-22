@@ -1,27 +1,12 @@
 "use server";
-import { z } from "zod";
-import fs from "fs/promises";
-import { File } from "buffer";
+
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { redirect } from "next/navigation";
+import { productSchema } from "./schema";
+import { revalidatePath } from "next/cache";
 
-const productSchema = z.object({
-  photo: z.string({
-    required_error: "사진을 추가해주세요."
-  }),
-  title: z.string({
-    required_error: "제목을 입력해주세요."
-  }),
-  description: z.string({
-    required_error: "설명을 입력해주세요."
-  }),
-  price: z.coerce.number({
-    required_error: "가격을 입력해주세요."
-  })
-});
-
-export async function UploadProduct(a: any, formData: FormData) {
+export async function UploadProduct(formData: FormData) {
   const data = {
     photo: formData.get("photo"),
     title: formData.get("title"),
@@ -54,6 +39,7 @@ export async function UploadProduct(a: any, formData: FormData) {
       });
 
       if (product) {
+        revalidatePath("/home");
         redirect(`/products/${product.id}`);
       }
     }
@@ -61,8 +47,6 @@ export async function UploadProduct(a: any, formData: FormData) {
 }
 
 export const getUploadUrl = async () => {
-  console.log("account_id", process.env.CLOUDFLARE_ACCOUNT_ID);
-  console.log("token", process.env.CLOUDFLARE_TOKEN);
   const res = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v2/direct_upload`,
     {
