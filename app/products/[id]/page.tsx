@@ -6,6 +6,7 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { formatToWon } from "@/lib/utils";
 import { unstable_cache as nextCache, revalidateTag } from "next/cache";
+import { createChatRoom } from "./actions";
 
 const getIsOwner = async (userId: number) => {
   // const session = await getSession();
@@ -88,6 +89,13 @@ export default async function ProductDetail({
     revalidateTag("product-title");
   };
 
+  const handleCreateChatRoom = async () => {
+    "use server";
+    await createChatRoom({
+      productUserId: product.userId
+    });
+  };
+
   return (
     <div>
       <div className="relative aspect-square">
@@ -134,12 +142,11 @@ export default async function ProductDetail({
             삭제하기
           </Link>
         )}
-        <Link
-          className="bg-orange-500 px-5 py-2.5 rounded-md text-white font-semibold"
-          href={``}
-        >
-          채팅하기
-        </Link>
+        <form action={handleCreateChatRoom}>
+          <button className="bg-orange-500 px-5 py-2.5 rounded-md text-white font-semibold">
+            채팅하기
+          </button>
+        </form>
       </div>
     </div>
   );
