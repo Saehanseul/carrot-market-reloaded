@@ -6,7 +6,13 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}"
   ],
-  theme: {},
+  theme: {
+    extend: {
+      fontFamily: {
+        roboto: "var(--roboto-text)"
+      }
+    }
+  },
   plugins: [require("@tailwindcss/forms")]
 };
 export default config;
